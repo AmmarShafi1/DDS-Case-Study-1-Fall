@@ -1,5 +1,7 @@
-https://www.youtube.com/watch?v=c_NYUSL_L3A
+Video: https://www.youtube.com/watch?v=c_NYUSL_L3A
+
 PDF of Slides: https://drive.google.com/file/d/181CLaG3RufBCRvENsvtiYAbU3GkEZPUo/view?usp=sharing
+
 Powerpoint file: https://docs.google.com/presentation/d/1zoNQeL7QZnYILfI9wTA_l5ko7Dw5sPEy/edit?usp=sharing&ouid=106855699029326640324&rtpof=true&sd=true
 
 # Employee Attrition Analysis for Frito Lay - DDSAnalytics
