@@ -1,0 +1,485 @@
+---
+title: "Comparing Variables"
+output: html_document
+date: "2024-10-30"
+---
+
+```{r setup, include=FALSE}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Load the data (replace the file path with the actual one if needed)
+data <- read.csv("CaseStudy1-data.csv")
+```
+
+```{r}
+head(data)
+```
+
+
+```{r}
+# Visualizing Age vs Attrition
+ggplot(data, aes(x = Age, fill = Attrition)) +
+  geom_histogram(binwidth = 5, position = "dodge") +
+  labs(title = "Age vs Attrition", x = "Age", y = "Count")
+```
+
+
+```{r}
+# Create age groups (10-year intervals)
+data$AgeGroup <- cut(data$Age, breaks = seq(10, 70, by = 10), right = FALSE)
+
+# Count the number of members in each age group
+age_group_count <- table(data$AgeGroup)
+
+# Convert to data frame for plotting
+age_group_df <- as.data.frame(age_group_count)
+
+# Create a bar plot with count labels on top
+ggplot(age_group_df, aes(x = Var1, y = Freq, fill = Var1)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = Freq), vjust = -0.5) +  # Adding the count labels
+  labs(x = "Age Group", y = "Count", title = "Count of Members by Age Group (10-year intervals)") +
+  theme_minimal() +
+  scale_x_discrete(labels = function(x) gsub("\\[|\\]", "", x))  # Clean up axis labels
+
+
+```
+
+```{r}
+# Plot histogram separated by gender and attrition, with dodge to separate attrition values
+ggplot(data, aes(x = AgeGroup, fill = Attrition)) +
+  geom_bar(position = "dodge") +
+  facet_wrap(~ Gender) +
+  labs(title = "Attrition by Age Group and Gender",
+       x = "Age Group",
+       y = "Count") +
+  theme_minimal()
+```
+
+
+```{r}
+# Calculate percentage within each AgeGroup and Gender for attrition
+data_percentage <- data %>%
+  group_by(AgeGroup, Gender, Attrition) %>%
+  summarise(count = n()) %>%
+  group_by(AgeGroup, Gender) %>%
+  mutate(total = sum(count),
+         percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Filter to show only 'Yes' attrition
+
+# Plot histogram as percentage, separated by gender for 'Yes' attrition only
+ggplot(data_percentage, aes(x = AgeGroup, y = percentage, fill = Gender)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Attrition Percentage (Yes) by Age Group and Gender",
+       x = "Age Group",
+       y = "Attrition Percentage (%)") +
+  theme_minimal()
+
+
+```
+
+
+```{r}
+# Calculate percentage within each AgeGroup for attrition
+data_percentage <- data %>%
+  group_by(AgeGroup, Attrition) %>%
+  summarise(count = n()) %>%
+  group_by(AgeGroup) %>%
+  mutate(total = sum(count),
+         percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Filter to show only 'Yes' attrition
+
+# Plot histogram as percentage for 'Yes' attrition only by AgeGroup
+ggplot(data_percentage, aes(x = AgeGroup, y = percentage, fill = AgeGroup)) +
+  geom_bar(stat = "identity") + geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +
+  labs(title = "Attrition Percentage (Yes) by Age Group",
+       x = "Age Group",
+       y = "Attrition Percentage (%)") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend if not needed
+
+```
+```{r}
+# Create a bar plot for department name vs attrition
+ggplot(data, aes(x = Department, fill = Attrition)) +
+  geom_bar(position = "dodge") +
+  labs(x = "Department", y = "Count", title = "Attrition by Department") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for better readability
+
+
+# Calculate the percentage of attrition for each department
+attrition_percentage <- data %>%
+  group_by(Department, Attrition) %>%
+  summarise(count = n()) %>%
+  mutate(total = sum(count), percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Focus only on attrition 'Yes'
+
+# Create a bar plot for percentage of attrition by department with values on bars
+ggplot(attrition_percentage, aes(x = Department, y = percentage, fill = Department)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +  # Add percentage values on top
+  labs(x = "Department", y = "Attrition Percentage", title = "Attrition Percentage by Department") +
+  ylim(0, 50) +  # Set the y-axis scale to go up to 50%
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for better readability
+```
+```{r}
+# Create hourly rate groups segmented by intervals of 10
+data$HourlyRateGroup <- cut(data$HourlyRate, breaks = seq(0, 110, by = 10), right = FALSE)
+
+# Count the number of attrition cases by hourly rate group
+hourly_rate_attrition <- data %>%
+  group_by(HourlyRateGroup, Attrition) %>%
+  summarise(count = n()) %>%
+  mutate(total = sum(count), percentage = (count / total) * 100)
+
+# Create a bar plot for attrition by hourly rate group
+ggplot(hourly_rate_attrition, aes(x = HourlyRateGroup, y = count, fill = Attrition)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Hourly Rate Group", y = "Count", title = "Attrition by Hourly Rate (Segmented by 10)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+
+# Create a bar plot for attrition percentage by hourly rate group
+ggplot(hourly_rate_attrition %>% filter(Attrition == "Yes"), aes(x = HourlyRateGroup, y = percentage, fill = HourlyRateGroup)) +
+  geom_bar(stat = "identity") + geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +
+  labs(x = "Hourly Rate Group", y = "Attrition Percentage", title = "Attrition Percentage by Hourly Rate Group") +
+  ylim(0, 50) +  # Set y-axis limit to 50%
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+
+```{r}
+
+# Calculate the percentage of attrition for each YearsSinceLastPromotion group
+attrition_percentage_promotion <- data %>%
+  group_by(YearsSinceLastPromotion, Attrition) %>%
+  summarise(count = n()) %>%
+  group_by(YearsSinceLastPromotion) %>%
+  mutate(total = sum(count), percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Filter to show only 'Yes' attrition
+
+# Create a bar plot for attrition percentage by YearsSinceLastPromotion
+ggplot(attrition_percentage_promotion, aes(x = as.factor(YearsSinceLastPromotion), y = percentage, fill = as.factor(YearsSinceLastPromotion))) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +  # Add percentage values on top
+  labs(title = "Attrition Percentage by Years Since Last Promotion",
+       x = "Years Since Last Promotion",
+       y = "Attrition Percentage (%)") +
+  ylim(0, max(attrition_percentage_promotion$percentage) + 10) +  # Adjust y-axis to give space for labels
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Group YearsSinceLastPromotion into 5-year intervals
+data <- data %>%
+  mutate(YearsSinceLastPromotion_Group = cut(YearsSinceLastPromotion,
+                                             breaks = seq(0, max(YearsSinceLastPromotion, na.rm = TRUE) + 5, by = 5),
+                                             labels = paste(seq(0, max(YearsSinceLastPromotion, na.rm = TRUE), by = 5),
+                                                            seq(5, max(YearsSinceLastPromotion, na.rm = TRUE) + 5, by = 5),
+                                                            sep = "-"),
+                                             right = FALSE))
+
+# Calculate the percentage of attrition for each 5-year group of YearsSinceLastPromotion
+attrition_percentage_promotion <- data %>%
+  group_by(YearsSinceLastPromotion_Group, Attrition) %>%
+  summarise(count = n()) %>%
+  group_by(YearsSinceLastPromotion_Group) %>%
+  mutate(total = sum(count), percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Filter to show only 'Yes' attrition
+
+# Create a bar plot for attrition percentage by 5-year group of YearsSinceLastPromotion
+ggplot(attrition_percentage_promotion, aes(x = YearsSinceLastPromotion_Group, y = percentage, fill = YearsSinceLastPromotion_Group)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +  # Add percentage values on top
+  labs(title = "Attrition Percentage by Years Since Last Promotion (5-Year Groups)",
+       x = "Years Since Last Promotion (Grouped)",
+       y = "Attrition Percentage (%)") +
+  ylim(0, max(attrition_percentage_promotion$percentage, na.rm = TRUE) + 10) +  # Adjust y-axis to give space for labels
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+
+```
+
+
+```{r}
+# Calculate the percentage of attrition for each YearsInCurrentRole group
+attrition_percentage_role <- data %>%
+  group_by(YearsInCurrentRole, Attrition) %>%
+  summarise(count = n()) %>%
+  group_by(YearsInCurrentRole) %>%
+  mutate(total = sum(count), percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Filter to show only 'Yes' attrition
+
+# Create a bar plot for attrition percentage by YearsInCurrentRole
+ggplot(attrition_percentage_role, aes(x = as.factor(YearsInCurrentRole), y = percentage, fill = as.factor(YearsInCurrentRole))) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +  # Add percentage values on top
+  labs(title = "Attrition Percentage by Years in Current Role",
+       x = "Years in Current Role",
+       y = "Attrition Percentage (%)") +
+  ylim(0, max(attrition_percentage_role$percentage) + 10) +  # Adjust y-axis to give space for labels
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+
+```{r}
+# Categorize YearsInCurrentRole into 5-year intervals
+data <- data %>%
+  mutate(YearsInCurrentRole_Group = cut(YearsInCurrentRole,
+                                        breaks = seq(0, max(YearsInCurrentRole, na.rm = TRUE) + 5, by = 5),
+                                        labels = paste(seq(0, max(YearsInCurrentRole, na.rm = TRUE), by = 5),
+                                                       seq(5, max(YearsInCurrentRole, na.rm = TRUE) + 5, by = 5),
+                                                       sep = "-"),
+                                        right = FALSE))
+
+# Calculate the percentage of attrition for each YearsInCurrentRole_Group
+attrition_percentage_role <- data %>%
+  group_by(YearsInCurrentRole_Group, Attrition) %>%
+  summarise(count = n()) %>%
+  group_by(YearsInCurrentRole_Group) %>%
+  mutate(total = sum(count), percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Filter to show only 'Yes' attrition
+
+# Create a bar plot for attrition percentage by 5-year group of YearsInCurrentRole
+ggplot(attrition_percentage_role, aes(x = YearsInCurrentRole_Group, y = percentage, fill = YearsInCurrentRole_Group)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +  # Add percentage values on top
+  labs(title = "Attrition Percentage by Years in Current Role (5-Year Groups)",
+       x = "Years in Current Role (Grouped)",
+       y = "Attrition Percentage (%)") +
+  ylim(0, max(attrition_percentage_role$percentage, na.rm = TRUE) + 10) +  # Adjust y-axis to give space for labels
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+
+```{r}
+# Calculate the percentage of attrition for each JobRole
+attrition_percentage_role <- data %>%
+  group_by(JobRole, Attrition) %>%
+  summarise(count = n()) %>%
+  group_by(JobRole) %>%
+  mutate(total = sum(count), percentage = (count / total) * 100) %>%
+  filter(Attrition == "Yes")  # Filter to show only 'Yes' attrition
+
+# Create a bar plot for attrition percentage by JobRole
+ggplot(attrition_percentage_role, aes(x = JobRole, y = percentage, fill = JobRole)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = sprintf("%.1f%%", percentage)), vjust = -0.3) +  # Add percentage values on top
+  labs(title = "Attrition Percentage by Job Role",
+       x = "Job Role",
+       y = "Attrition Percentage (%)") +
+  ylim(0, max(attrition_percentage_role$percentage, na.rm = TRUE) + 10) +  # Adjust y-axis to give space for labels
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for readability
+```
+
+```{r}
+# Calculate and display the minimum and maximum of DistanceFromHome
+min_distance <- min(data$DistanceFromHome, na.rm = TRUE)
+max_distance <- max(data$DistanceFromHome, na.rm = TRUE)
+
+min_distance
+max_distance
+
+
+# Assuming your data is in a dataframe called data
+
+# Group DistanceFromHome in increments of 5
+data$Distance_Category <- cut(
+  data$DistanceFromHome,
+  breaks = seq(0, max(data$DistanceFromHome, na.rm = TRUE) + 5, by = 5),
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+# Display the updated dataframe
+head(data)
+
+```
+
+```{r}
+# Calculate and display the minimum and maximum of DistanceFromHome
+min_salary_hike <- min(data$PercentSalaryHike, na.rm = TRUE)
+max_salary_hike <- max(data$PercentSalaryHike, na.rm = TRUE)
+
+min_salary_hike
+max_salary_hike
+
+
+# Assuming your data is in a dataframe called data
+
+```
+
+```{r}
+
+# Group SalaryHike in increments of 3
+data$SalaryHike_Category <- cut(
+  data$PercentSalaryHike,
+  breaks = seq(10, 25, by = 3),
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+# Calculate the percentage of attrition within each salary hike category
+library(dplyr)
+attrition_summary <- data %>%
+  group_by(SalaryHike_Category) %>%
+  summarize(
+    Attrition_Percentage = mean(Attrition == "Yes") * 100
+  )
+
+# Plot the percentage of attrition by salary hike category
+library(ggplot2)
+ggplot(attrition_summary, aes(x = SalaryHike_Category, y = Attrition_Percentage, fill = SalaryHike_Category)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Percentage of Attrition by Salary Hike Category", x = "Salary Hike Category", y = "Attrition Percentage") +
+  theme_minimal()
+
+```
+
+```{r}
+
+# Step 1: Group `DistanceFromHome` into increments of 10
+data$Distance_Category <- cut(
+  data$DistanceFromHome,
+  breaks = seq(0, max(data$DistanceFromHome, na.rm = TRUE) + 5, by = 10),
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+# Step 2: Calculate the attrition percentage for each distance category
+attrition_summary <- data %>%
+  group_by(Distance_Category) %>%
+  summarize(Attrition_Percentage = mean(Attrition == "Yes") * 100)
+
+# Step 3: Plot the attrition percentage by distance category with percentage labels
+ggplot(attrition_summary, aes(x = Distance_Category, y = Attrition_Percentage)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_text(aes(label = sprintf("%.1f%%", Attrition_Percentage)), 
+            vjust = -0.5, size = 4) +  # Display percentages on top of bars
+  labs(title = "Attrition Percentage by Distance from Home",
+       x = "Distance from Home (Grouped by 5)",
+       y = "Attrition Percentage") +
+  theme_minimal()
+```
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(ggplot2)
+
+# Step 1: Calculate the attrition percentage for each BusinessTravel category
+attrition_by_travel <- data %>%
+  group_by(BusinessTravel) %>%
+  summarize(Attrition_Percentage = mean(Attrition == "Yes") * 100)
+
+# Step 2: Plot the attrition percentage by BusinessTravel category
+ggplot(attrition_by_travel, aes(x = BusinessTravel, y = Attrition_Percentage)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  labs(title = "Attrition Percentage by Business Travel",
+       x = "Business Travel",
+       y = "Attrition Percentage") +
+  theme_minimal()
+
+```
+
+```{r}
+# Calculate the minimum and maximum values of YearsAtCompany
+min_years <- min(data$YearsAtCompany, na.rm = TRUE)
+max_years <- max(data$YearsAtCompany, na.rm = TRUE)
+
+min_years
+max_years
+
+```
+
+```{r}
+# Step 1: Calculate the attrition percentage for each YearsAtCompany group
+attrition_summary <- data %>%
+  group_by(YearsAtCompany_Group) %>%
+  summarize(Attrition_Percentage = mean(Attrition == "Yes") * 100)
+
+# Step 2: Plot the attrition percentage by YearsAtCompany group with percentage labels
+ggplot(attrition_summary, aes(x = YearsAtCompany_Group, y = Attrition_Percentage)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  geom_text(aes(label = sprintf("%.1f%%", Attrition_Percentage)), 
+            vjust = -0.5, size = 4) +  # Display percentages on top of bars
+  labs(title = "Attrition Percentage by Years at Company (5-Year Intervals)",
+       x = "Years at Company (Grouped by 5)",
+       y = "Attrition Percentage") +
+  theme_minimal()
+
+
+```
+
+```{r}
+
+# Step 1: Calculate attrition percentage for each EnvironmentSatisfaction level
+attrition_by_env_satisfaction <- data %>%
+  group_by(EnvironmentSatisfaction) %>%
+  summarize(Attrition_Percentage = mean(Attrition == "Yes") * 100)
+
+# Step 2: Plot the attrition percentages by Environment Satisfaction level
+ggplot(attrition_by_env_satisfaction, aes(x = factor(EnvironmentSatisfaction), y = Attrition_Percentage)) +
+  geom_bar(stat = "identity", fill = "lightblue") +
+  labs(title = "Attrition Percentage by Environment Satisfaction Level",
+       x = "Environment Satisfaction Level",
+       y = "Attrition Percentage") +
+  theme_minimal()
+
+```
+
+```{r}
+# Step 1: Calculate attrition percentage for each NumCompaniesWorked level
+attrition_by_num_companies <- data %>%
+  group_by(NumCompaniesWorked) %>%
+  summarize(Attrition_Percentage = mean(Attrition == "Yes") * 100)
+
+# Step 2: Plot the attrition percentages by NumCompaniesWorked
+ggplot(attrition_by_num_companies, aes(x = factor(NumCompaniesWorked), y = Attrition_Percentage)) +
+  geom_bar(stat = "identity", fill = "lightgreen") +
+  labs(title = "Attrition Percentage by Number of Companies Worked",
+       x = "Number of Companies Worked",
+       y = "Attrition Percentage") +
+  theme_minimal()
+```
+
+```{r}
+
+
+# Step 1: Create a new column categorizing NumCompaniesWorked as ">5" or "≤5"
+data <- data %>%
+  mutate(NumCompanies_Category = ifelse(NumCompaniesWorked > 5, ">5", "≤5"))
+
+# Step 2: Calculate the attrition percentage for each category
+attrition_by_num_companies_category <- data %>%
+  group_by(NumCompanies_Category) %>%
+  summarize(Attrition_Percentage = mean(Attrition == "Yes") * 100)
+
+# Step 3: Plot the attrition percentages by NumCompanies_Category with percentage labels
+ggplot(attrition_by_num_companies_category, aes(x = NumCompanies_Category, y = Attrition_Percentage)) +
+  geom_bar(stat = "identity", fill = "orange") +
+  geom_text(aes(label = sprintf("%.1f%%", Attrition_Percentage)), 
+            vjust = -0.5, size = 4) +  # Add percentage labels on top of bars
+  labs(title = "Attrition Percentage by Number of Companies Worked",
+       x = "Number of Companies Worked (Categories)",
+       y = "Attrition Percentage") +
+  theme_minimal()
+```
+```{r}
+# Calculate the proportion of "Yes" and "No" in the Attrition column
+attrition_proportion <- prop.table(table(data$Attrition)) * 100
+
+# Display the result
+attrition_proportion
+
+```
+

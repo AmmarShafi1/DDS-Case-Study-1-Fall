@@ -1,0 +1,256 @@
+---
+title: "NB"
+output: html_document
+date: "2024-10-31"
+---
+
+```{r}
+# Load necessary libraries
+library(dplyr)
+library(class)  # For KNN
+library(caret)  # For data splitting
+```
+
+
+```{r}
+# Step 1: Data Preprocessing
+# Load the data (replace the file path with the actual one if needed)
+data <- read.csv("CaseStudy1-data.csv")
+```
+
+```{r}
+data$Age_Category <- cut(data$Age, 
+                breaks = seq(10, 100, by = 10), 
+                labels = paste(seq(10, 90, by = 10), seq(20, 100, by = 10), sep = "-"),
+                right = FALSE, 
+                include.lowest = TRUE)
+```
+
+
+```{r}
+# DistanceFromHome groups
+data$Distance_Category <- cut(
+  data$DistanceFromHome,
+  breaks = seq(0, max(data$DistanceFromHome, na.rm = TRUE) + 5, by = 5),
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+head(data$Distance_Category)
+```
+
+
+```{r}
+# Group SalaryHike in increments of 3
+data$SalaryHike_Category <- cut(
+  data$PercentSalaryHike,
+  breaks = seq(10, 25, by = 3),
+  right = FALSE,
+  include.lowest = TRUE
+)
+head(data$SalaryHike_Category)
+```
+
+
+```{r}
+# Group YearsSinceLastPromotion into 5-year intervals
+data <- data %>%
+  mutate(YearsSinceLastPromotion_Group = cut(YearsSinceLastPromotion,
+                                             breaks = seq(0, max(YearsSinceLastPromotion, na.rm = TRUE) + 5, by = 5),
+                                             labels = paste(seq(0, max(YearsSinceLastPromotion, na.rm = TRUE), by = 5),
+                                                            seq(5, max(YearsSinceLastPromotion, na.rm = TRUE) + 5, by = 5),
+                                                            sep = "-"),
+                                             right = FALSE))
+
+head(data$YearsSinceLastPromotion_Group)
+```
+
+```{r}
+data <- data %>%
+  mutate(YearsAtCompany_Group = cut(YearsAtCompany,
+                                    breaks = seq(0, max(YearsAtCompany, na.rm = TRUE) + 5, by = 5),
+                                    labels = paste(seq(0, max(YearsAtCompany, na.rm = TRUE), by = 5),
+                                                   seq(5, max(YearsAtCompany, na.rm = TRUE) + 5, by = 5),
+                                                   sep = "-"),
+                                    right = FALSE))
+
+head(data$YearsAtCompany_Group)
+
+```
+
+```{r}
+data <- data %>%
+  mutate(NumCompanies_Category = ifelse(NumCompaniesWorked > 5, ">5", "≤5"))
+head(data$NumCompanies_Category)
+```
+
+
+```{r}
+head(data)
+```
+
+```{r}
+set.seed(123)
+# Step 2: Split data into training (75%) and testing (25%) sets
+trainIndex <- createDataPartition(data$Attrition, p = 0.75, list = FALSE)
+trainData <- data[trainIndex, ]
+testData <- data[-trainIndex, ]
+
+# Step 3: Train Naive Bayes model on the training data
+nb_model <- naiveBayes(Attrition ~ Age_Category + YearsSinceLastPromotion_Group + SalaryHike_Category + Distance_Category + JobRole + YearsAtCompany_Group + EnvironmentSatisfaction
+                       + NumCompanies_Category,data = trainData, laplace = 1)
+
+# Step 4: Make predictions on the test set with probabilities
+nb_pred_prob <- predict(nb_model, testData, type = "raw")
+
+# Custom threshold for increased sensitivity (e.g., 0.2 instead of the default 0.5)
+custom_threshold <- 0.2
+nb_pred_custom <- ifelse(nb_pred_prob[, "Yes"] >= custom_threshold, "Yes", "No")
+# Ensure that nb_pred_custom and testData$Attrition have the same levels
+nb_pred_custom <- factor(nb_pred_custom, levels = c("Yes", "No"))
+
+testData$Attrition <- factor(testData$Attrition, levels = c("Yes", "No"))
+
+# Step 5: Evaluate the model with the custom threshold
+conf_matrix_custom <- confusionMatrix(nb_pred_custom, testData$Attrition, positive = "Yes")
+print(conf_matrix_custom)
+
+# Step 5: Evaluate the model with the custom threshold
+conf_matrix_custom <- confusionMatrix(as.factor(nb_pred_custom), testData$Attrition, positive = "Yes")
+print(conf_matrix_custom)
+
+```
+
+```{r}
+# Convert all non-numeric columns to numeric
+data_numeric <- data %>%
+  mutate(across(everything(), ~ as.numeric(as.factor(.))))
+```
+
+
+```{r}
+str(data)
+```
+
+
+```{r}
+# Check the result
+str(data_numeric)
+```
+```{r}
+# Select only the specified columns
+data_filtered <- data_numeric %>%
+  select(Attrition, Age_Category, YearsSinceLastPromotion_Group, SalaryHike_Category, 
+         Distance_Category, JobRole, YearsAtCompany_Group, EnvironmentSatisfaction, 
+         NumCompanies_Category)
+
+# View the structure of the filtered data
+str(data_filtered)
+```
+
+
+```{r}
+# Step 1: Split the data into training and testing sets (75% training, 25% testing)
+set.seed(123)  # For reproducibility
+trainIndex <- createDataPartition(data_filtered$Attrition, p = 0.75, list = FALSE)
+trainData <- data_filtered[trainIndex, ]
+testData <- data_filtered[-trainIndex, ]
+
+# Step 2: Prepare the data for KNN
+# Separate features and labels
+train_knn <- trainData %>% select(-Attrition) %>% as.matrix()  # Matrix of predictors for training
+test_knn <- testData %>% select(-Attrition) %>% as.matrix()    # Matrix of predictors for testing
+train_labels <- trainData$Attrition  # Target variable for training set
+
+# Step 3: Train and Predict with KNN (Choose k, e.g., k = 5)
+k <- 2
+knn_pred <- knn(train = train_knn, test = test_knn, cl = train_labels, k = k)
+
+# Step 4: Evaluate the KNN Model
+# Convert the true labels to a factor for compatibility with confusionMatrix
+test_labels <- as.factor(testData$Attrition)
+
+# Confusion matrix to assess model performance
+conf_matrix_knn <- confusionMatrix(knn_pred, test_labels, positive = "2")
+print(conf_matrix_knn)
+
+
+```
+
+```{r}
+# Step 1: Data Preprocessing
+# Load the data (replace the file path with the actual one if needed)
+data2 <- read.csv(file.choose(),header = TRUE)
+```
+
+```{r}
+head(data2)
+```
+
+```{r}
+data2$Age_Category <- cut(data2$Age, 
+                breaks = seq(10, 100, by = 10), 
+                labels = paste(seq(10, 90, by = 10), seq(20, 100, by = 10), sep = "-"),
+                right = FALSE, 
+                include.lowest = TRUE)
+
+data2$Distance_Category <- cut(
+  data2$DistanceFromHome,
+  breaks = seq(0, max(data$DistanceFromHome, na.rm = TRUE) + 5, by = 5),
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+data2$SalaryHike_Category <- cut(
+  data2$PercentSalaryHike,
+  breaks = seq(10, 25, by = 3),
+  right = FALSE,
+  include.lowest = TRUE
+)
+
+data2 <- data2 %>%
+  mutate(YearsSinceLastPromotion_Group = cut(YearsSinceLastPromotion,
+                                             breaks = seq(0, max(YearsSinceLastPromotion, na.rm = TRUE) + 5, by = 5),
+                                             labels = paste(seq(0, max(YearsSinceLastPromotion, na.rm = TRUE), by = 5),
+                                                            seq(5, max(YearsSinceLastPromotion, na.rm = TRUE) + 5, by = 5),
+                                                            sep = "-"),
+                                             right = FALSE))
+
+data2 <- data2 %>%
+  mutate(YearsAtCompany_Group = cut(YearsAtCompany,
+                                    breaks = seq(0, max(YearsAtCompany, na.rm = TRUE) + 5, by = 5),
+                                    labels = paste(seq(0, max(YearsAtCompany, na.rm = TRUE), by = 5),
+                                                   seq(5, max(YearsAtCompany, na.rm = TRUE) + 5, by = 5),
+                                                   sep = "-"),
+                                    right = FALSE))
+
+data2 <- data2 %>%
+  mutate(NumCompanies_Category = ifelse(NumCompaniesWorked > 5, ">5", "≤5"))
+head(data$NumCompanies_Category)
+
+```
+
+```{r}
+head(data2)
+```
+
+```{r}
+# Step 1: Make predictions on the new data
+new_data_predictions <- predict(nb_model, data2)
+
+# Step 2: Create a new data frame with 'ID' and 'Attrition' predictions
+results_df <- data.frame(ID = data2$ID, Predicted_Attrition = new_data_predictions)
+
+# Step 3: View the resulting data frame
+head(results_df)
+```
+```{r}
+write.csv(results_df, "attrition_predictions.csv", row.names = FALSE)
+```
+
+```{r}
+
+#https://www.youtube.com/watch?v=c_NYUSL_L3A
+
+```
+
