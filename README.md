@@ -1,4 +1,4 @@
-<iframe width="560" height="315" src="https://www.youtube.com/embed/c_NYUSL_L3A?si=NlF5G9FXj5p73OJT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+[[<iframe width="560" height="315" src="https://www.youtube.com/embed/c_NYUSL_L3A?si=NlF5G9FXj5p73OJT" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>](https://www.youtube.com/watch?v=c_NYUSL_L3A)](https://www.youtube.com/watch?v=c_NYUSL_L3A)
 
 # Employee Attrition Analysis for Frito Lay - DDSAnalytics
 
