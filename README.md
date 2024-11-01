@@ -26,14 +26,17 @@ These will be the main attributes that we will use to build a predictive model f
 
 ### Model
 ##KNN
+
 ![image](https://github.com/user-attachments/assets/b598cce4-2f55-41dc-bbf5-1a4f49da61e2)
 ![image](https://github.com/user-attachments/assets/a35a3da0-c2c9-44c6-a20b-acc6a117df67)
 
 ##NB
+
 ![image](https://github.com/user-attachments/assets/8ed287cc-b37c-43d0-b014-34eed74e696f)
 ![image](https://github.com/user-attachments/assets/d6ffb2df-e630-4432-8ff9-5700581a35fe)
 
 ##Results
+
 ![image](https://github.com/user-attachments/assets/fb967093-9a93-4431-940c-c73f16312539)
 Accuracy, This shows how often the model gets the prediction right overall. The KNN model gets it right about 79% of the time, and the NB model about 75%. A 3% decrease in accuracy doesn’t necessarily mean the model is worse because accuracy only tells us how often the model gets any prediction right.
 Sensitivity: Sensitivity tells us how well the model spots the cases we’re really looking for (like "yes" cases). The KNN model finds these only 12% of the time, while the NB model finds them 66% of the time, so NB is much better at catching what we care about
