@@ -1,7 +1,7 @@
 # Employee Attrition Analysis for Frito Lay - DDSAnalytics
 
 ## Executive Summary
-DDSAnalytics, a leading talent management analytics firm, conducted an in-depth analysis of employee attrition for Frito Lay, aiming to identify the primary factors influencing turnover and predict which employees may be more likely to leave. Using a comprehensive dataset provided by Frito Lay, this project investigates key drivers of attrition, uncovers job role-specific trends, and builds a predictive model to assist in proactive retention strategies. 
+DDSAnalytics, a leading talent management analytics firm, conducted an in-depth analysis of employee attrition for Frito Lay, aiming to identify the primary factors influencing turnover and predict which employees may be more likely to leave. Using a comprehensive dataset provided by Frito Lay, this project investigates key drivers of attrition, uncovers job role-specific trends, and builds a predictive model to assist in proactive retention strategies. We have developed a naive bayes based model to predict potential attrition in employees targetting attributes such as Age, Year Since Last Promotion, Salary Hike, Distance, Job Role, Years At Company, and Number of Companies Worked.
 
 ## Introduction
 Employee attrition remains a critical concern in talent management, particularly within large organizations seeking to retain high-potential employees and minimize the costs associated with turnover. Frito Lay, a prominent brand under PepsiCo, has partnered with DDSAnalytics to leverage advanced analytics in understanding and mitigating attrition. This project involves analyzing a rich dataset to reveal patterns and factors influencing employee turnover and build a model that can predict future attrition risks.
