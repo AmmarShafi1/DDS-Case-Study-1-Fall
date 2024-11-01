@@ -6,7 +6,7 @@ DDSAnalytics, a leading talent management analytics firm, conducted an in-depth 
 ## Introduction
 Employee attrition remains a critical concern in talent management, particularly within large organizations seeking to retain high-potential employees and minimize the costs associated with turnover. Frito Lay, a prominent brand under PepsiCo, has partnered with DDSAnalytics to leverage advanced analytics in understanding and mitigating attrition. This project involves analyzing a rich dataset to reveal patterns and factors influencing employee turnover and build a model that can predict future attrition risks.
 
-### Data
+## Data
 ![image](https://github.com/user-attachments/assets/ac620901-1268-432b-928c-08d2e9a3388f)
 
 The charts display key demographic data for the organization. The first chart shows a higher number of male members (516) compared to females (354). The second chart highlights the age distribution, with the majority of members in the 30-40 age group (381), followed by the 20-30 group (172) and the 40-50 group (215). The third chart reveals that most employees are in the "Research & Development" department (562), while fewer are in "Sales" (273) and "Human Resources" (35). The maximum age in the dataset is 60, and the minimum age is 18.
@@ -24,18 +24,18 @@ This first chart shows us that working at more than 5 companies could be associa
 
 These will be the main attributes that we will use to build a predictive model for attrition.
 
-### Model
-## KNN
+## Model
+### KNN
 
 ![image](https://github.com/user-attachments/assets/b598cce4-2f55-41dc-bbf5-1a4f49da61e2)
 ![image](https://github.com/user-attachments/assets/a35a3da0-c2c9-44c6-a20b-acc6a117df67)
 
-## NB
+### NB
 
 ![image](https://github.com/user-attachments/assets/8ed287cc-b37c-43d0-b014-34eed74e696f)
 ![image](https://github.com/user-attachments/assets/d6ffb2df-e630-4432-8ff9-5700581a35fe)
 
-## Results
+### Results
 
 ![image](https://github.com/user-attachments/assets/fb967093-9a93-4431-940c-c73f16312539)
 Accuracy, This shows how often the model gets the prediction right overall. The KNN model gets it right about 79% of the time, and the NB model about 75%. A 3% decrease in accuracy doesn’t necessarily mean the model is worse because accuracy only tells us how often the model gets any prediction right.
